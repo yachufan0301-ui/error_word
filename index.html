@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ian 的國語改錯字練習</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'BiauKai', 'DFKai-sb', 'Microsoft JhengHei', serif; padding: 20px; line-height: 2.5; font-size: 20px; text-align: center; background-color: #f9f9f9; }
+        h2 { color: #333; margin-bottom: 5px; }
+        #progress { font-size: 16px; color: #888; margin-bottom: 5px; }
+        #status { font-size: 20px; color: #444; margin-bottom: 20px; font-weight: bold; }
+        .sentence-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 auto; max-width: 800px; margin-bottom: 30px; }
+        .word-box { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .zhuyin { font-size: 14px; color: #666; height: 20px; font-family: sans-serif; }
+        .char { font-size: 28px; font-weight: bold; padding: 5px 10px; min-width: 30px; border-bottom: 3px solid #ccc; transition: all 0.3s; }
+        .found { color: green; border-bottom: 3px solid green; background-color: #e6ffe6; }
+        #next-btn { display: none; margin: 20px auto; padding: 10px 30px; font-size: 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Ian，請找出這題的錯字！</h2>
+    <div id="progress"></div>
+    <div id="status"></div>
+    <div class="sentence-container" id="game"></div>
+    <button id="next-btn" onclick="nextQuestion()">下一題</button>
+
+    <script>
+        const exercises = [
+            [
+                { char: "小", z: "ㄒㄧㄠˇ", isError: false }, { char: "美", z: "ㄇㄟˇ", isError: false }, { char: "上", z: "ㄕㄤˋ", isError: false }, { char: "臺", z: "ㄊㄞˊ", isError: false }, { char: "表", z: "ㄅㄧㄠˇ", isError: false }, { char: "演", z: "ㄧㄢˇ", isError: false }, { char: "前", z: "ㄑㄧㄢˊ", isError: false }, { char: "，", z: "", isError: false }, { char: "因", z: "ㄧㄣ", isError: false }, { char: "為", z: "ㄨㄟˋ", isError: false }, { char: "有", z: "ㄧㄡˇ", isError: false }, { char: "爸", z: "ㄅㄚˋ", isError: false }, { char: "爸", z: "ㄅㄚ", isError: false }, { char: "媽", z: "ㄇㄚ", isError: false }, { char: "媽", z: "ㄇㄚ", isError: false }, { char: "的", z: "ㄉㄜ˙", isError: false }, { char: "鼓", z: "ㄍㄨˇ", isError: false }, { char: "勵", z: "ㄌㄧˋ", isError: false }, { char: "，", z: "", isError: false }, { char: "趕", z: "ㄍㄢˇ", isError: true, correct: "感" }, { char: "覺", z: "ㄐㄩㄝˊ", isError: false }, { char: "自", z: "ㄗˋ", isError: false }, { char: "己", z: "ㄐㄧˇ", isError: false }, { char: "不", z: "ㄅㄨˋ", isError: false }, { char: "那", z: "ㄋㄚˋ", isError: false }, { char: "麼", z: "ㄇㄜ˙", isError: false }, { char: "緊", z: "ㄐㄧㄣˇ", isError: false }, { char: "章", z: "ㄓㄤ", isError: true, correct: "張" }, { char: "，", z: "", isError: false }, { char: "孩", z: "ㄏㄞˊ", isError: true, correct: "還" }, { char: "更", z: "ㄍㄥˋ", isError: false }, { char: "有", z: "ㄧㄡˇ", isError: false }, { char: "自", z: "ㄗˋ", isError: false }, { char: "信", z: "ㄒㄧㄣˋ", isError: false }, { char: "了", z: "ㄌㄜ˙", isError: false }, { char: "。", z: "", isError: false }
+            ],
+            [
+                { char: "吃", z: "ㄔ", isError: false }, { char: "鮑", z: "ㄅㄠˇ", isError: true, correct: "飽" }, { char: "飯", z: "ㄈㄢˋ", isError: false }, { char: "後", z: "ㄏㄡˋ", isError: false }, { char: "，", z: "", isError: false }, { char: "我", z: "ㄨㄛˇ", isError: false }, { char: "和", z: "ㄏㄢˋ", isError: false }, { char: "姐", z: "ㄐㄧㄝˇ", isError: false }, { char: "姐", z: "ㄐㄧㄝ˙", isError: false }, { char: "幫", z: "ㄅㄤ", isError: false }, { char: "忙", z: "ㄇㄤˊ", isError: false }, { char: "收", z: "ㄕㄡ", isError: false }, { char: "拾", z: "ㄕˊ", isError: false }, { char: "碗", z: "ㄨㄢˇ", isError: false }, { char: "筷", z: "ㄎㄨㄞˋ", isError: false }, { char: "。", z: "", isError: false }
+            ],
+            [
+                { char: "媽", z: "ㄇㄚ", isError: false }, { char: "媽", z: "ㄇㄚ˙", isError: false }, { char: "帶", z: "ㄉㄞˋ", isError: false }, { char: "我", z: "ㄨㄛˇ", isError: false }, { char: "們", z: "ㄇㄣ˙", isError: false }, { char: "參", z: "ㄘㄢ", isError: false }, { char: "加", z: "ㄐㄧㄚ", isError: false }, { char: "園", z: "ㄩㄢˊ", isError: false }, { char: "遊", z: "ㄧㄡˊ", isError: false }, { char: "會", z: "ㄏㄨㄟˋ", isError: false }, { char: "，", z: "", isError: false }, { char: "我", z: "ㄨㄛˇ", isError: false }, { char: "們", z: "ㄇㄣ˙", isError: false }, { char: "逛", z: "ㄍㄨㄤˋ", isError: false }, { char: "了", z: "ㄌㄜ˙", isError: false }, { char: "非", z: "ㄈㄟ", isError: false }, { char: "常", z: "ㄔㄤˊ", isError: false }, { char: "久", z: "ㄐㄧㄡˇ", isError: false }, { char: "，", z: "", isError: false }, { char: "叱", z: "ㄔ", isError: true, correct: "吃" }, { char: "了", z: "ㄌㄜ˙", isError: false }, { char: "跟", z: "ㄏㄣˇ", isError: true, correct: "很" }, { char: "多", z: "ㄉㄨㄛ", isError: false }, { char: "食", z: "ㄕˊ", isError: false }, { char: "物", z: "ㄨˋ", isError: false }, { char: "，", z: "", isError: false }, { char: "直", z: "ㄓˊ", isError: false }, { char: "到", z: "ㄉㄠˋ", isError: false }, { char: "肚", z: "ㄉㄨˋ", isError: false }, { char: "子", z: "ㄗ˙", isError: false }, { char: "跑", z: "ㄅㄠˇ", isError: true, correct: "飽" }, { char: "得", z: "ㄉㄜˊ", isError: false }, { char: "不", z: "ㄅㄨˋ", isError: false }, { char: "得", z: "ㄉㄜˊ", isError: false }, { char: "了", z: "ㄌㄧㄠˇ", isError: false }, { char: "，", z: "", isError: false }, { char: "我", z: "ㄨㄛˇ", isError: false }, { char: "們", z: "ㄇㄣ˙", isError: false }, { char: "才", z: "ㄘㄞˊ", isError: false }, { char: "回", z: "ㄏㄨㄟˊ", isError: false }, { char: "家", z: "ㄐㄧㄚ", isError: false }, { char: "。", z: "", isError: false }
+            ],
+            [
+                { char: "一", z: "ㄧˋ", isError: false }, { char: "草", z: "ㄗㄠˇ", isError: true, correct: "早" }, { char: "，", z: "", isError: false }, { char: "哥", z: "ㄍㄜ", isError: false }, { char: "哥", z: "ㄍㄜ˙", isError: false }, { char: "就", z: "ㄐㄧㄡˋ", isError: false }, { char: "拿", z: "ㄋㄚˊ", isError: false }, { char: "著", z: "ㄓㄜ˙", isError: false }, { char: "自", z: "ㄗˋ", isError: false }, { char: "己", z: "ㄐㄧˇ", isError: false }, { char: "的", z: "ㄉㄜ˙", isError: false }, { char: "寶", z: "ㄅㄠˇ", isError: false }, { char: "員", z: "ㄅㄟˋ", isError: true, correct: "貝" }, { char: "籃", z: "ㄌㄢˊ", isError: false }, { char: "球", z: "ㄑㄧㄡˊ", isError: false }, { char: "出", z: "ㄔㄨ", isError: false }, { char: "門", z: "ㄇㄣˊ", isError: false }, { char: "，", z: "", isError: false }, { char: "原", z: "ㄩㄢˊ", isError: false }, { char: "來", z: "ㄌㄞˊ", isError: false }, { char: "是", z: "ㄕˋ", isError: false }, { char: "去", z: "ㄑㄩˋ", isError: false }, { char: "公", z: "ㄍㄨㄥ", isError: false }, { char: "員", z: "ㄩㄢˊ", isError: true, correct: "園" }, { char: "打", z: "ㄉㄚˇ", isError: false }, { char: "球", z: "ㄑㄧㄡˊ", isError: false }, { char: "了", z: "ㄌㄜ˙", isError: false }, { char: "。", z: "", isError: false }
+            ],
+            [
+                { char: "星", z: "ㄒㄧㄥ", isError: false }, { char: "星", z: "ㄒㄧㄥ˙", isError: false }, { char: "倒", z: "ㄉㄠˋ", isError: false }, { char: "映", z: "ㄧㄥˋ", isError: false }, { char: "在", z: "ㄗㄞˋ", isError: false }, { char: "地", z: "ㄔˊ", isError: true, correct: "池" }, { char: "塘", z: "ㄊㄤˊ", isError: false }, { char: "上", z: "ㄕㄤˋ", isError: false }, { char: "，", z: "", isError: false }, { char: "只", z: "ㄓˇ", isError: false }, { char: "要", z: "ㄧㄠˋ", isError: false }, { char: "風", z: "ㄈㄥ", isError: false }, { char: "一", z: "ㄧˋ", isError: false }, { char: "吹", z: "ㄔㄨㄟ", isError: false }, { char: "，", z: "", isError: false }, { char: "水", z: "ㄕㄨㄟˇ", isError: false }, { char: "面", z: "ㄇㄧㄢˋ", isError: false }, { char: "上", z: "ㄕㄤˋ", isError: false }, { char: "出", z: "ㄔㄨ", isError: false }, { char: "現", z: "ㄒㄧㄢˋ", isError: false }, { char: "一", z: "ㄧˋ", isError: false }, { char: "卷", z: "ㄑㄩㄢ", isError: true, correct: "圈" }, { char: "卷", z: "ㄑㄩㄢ", isError: true, correct: "圈" }, { char: "玻", z: "ㄅㄛ", isError: true, correct: "波" }, { char: "紋", z: "ㄨㄣˊ", isError: false }, { char: "，", z: "", isError: false }, { char: "星", z: "ㄒㄧㄥ", isError: false }, { char: "星", z: "ㄒㄧㄥ˙", isError: false }, { char: "就", z: "ㄐㄧㄡˋ", isError: false }, { char: "會", z: "ㄏㄨㄟˋ", isError: false }, { char: "消", z: "ㄒㄧㄠ", isError: false }, { char: "失", z: "ㄕ", isError: false }, { char: "不", z: "ㄅㄨˋ", isError: false }, { char: "貝", z: "ㄐㄧㄢˋ", isError: true, correct: "見" }, { char: "。", z: "", isError: false }
+            ],
+            [
+                { char: "我", z: "ㄨㄛˇ", isError: false }, { char: "在", z: "ㄗㄞˋ", isError: false }, { char: "這", z: "ㄓㄜˋ", isError: false }, { char: "伴", z: "ㄅㄢˋ", isError: true, correct: "片" }, { char: "塊", z: "ㄎㄨㄞˋ", isError: false }, { char: "土", z: "ㄊㄨˇ", isError: false }, { char: "地", z: "ㄉㄧˋ", isError: false }, { char: "上", z: "ㄕㄤˋ", isError: false }, { char: "種", z: "ㄓㄨㄥˋ", isError: false }, { char: "滿", z: "ㄇㄢˇ", isError: false }, { char: "了", z: "ㄌㄜ˙", isError: false }, { char: "玫", z: "ㄇㄟˊ", isError: false }, { char: "瑰", z: "ㄍㄨㄟ", isError: false }, { char: "花", z: "ㄏㄨㄚ", isError: false }, { char: "，", z: "", isError: false }, { char: "希", z: "ㄒㄧ", isError: false }, { char: "望", z: "ㄨㄤˋ", isError: false }, { char: "仍", z: "ㄋㄥˊ", isError: true, correct: "能" }, { char: "和", z: "ㄏㄢˋ", isError: false }, { char: "大", z: "ㄉㄚˋ", isError: false }, { char: "家", z: "ㄐㄧㄚ", isError: false }, { char: "一", z: "ㄧˋ", isError: false }, { char: "同", z: "ㄊㄨㄥˊ", isError: false }, { char: "芬", z: "ㄈㄣ", isError: true, correct: "分" }, { char: "亭", z: "ㄒㄧㄤˇ", isError: true, correct: "享" }, { char: "玫", z: "ㄇㄟˊ", isError: false }, { char: "瑰", z: "ㄍㄨㄟ", isError: false }, { char: "的", z: "ㄉㄜ˙", isError: false }, { char: "美", z: "ㄇㄟˇ", isError: false }, { char: "麗", z: "ㄌㄧˋ", isError: false }, { char: "姿", z: "ㄗ", isError: false }, { char: "態", z: "ㄊㄞˋ", isError: false }, { char: "。", z: "", isError: false }
+            ]
+        ];
+
+        let currentIndex = 0;
+        let foundCount = 0;
+        const container = document.getElementById('game');
+        const statusDiv = document.getElementById('status');
+        const progressDiv = document.getElementById('progress');
+        const nextBtn = document.getElementById('next-btn');
+
+        function loadQuestion() {
+            container.innerHTML = "";
+            foundCount = 0;
+            const currentQ = exercises[currentIndex];
+            const totalErrors = currentQ.filter(item => item.isError).length;
+            progressDiv.textContent = `第 ${currentIndex + 1} 題 / 共 ${exercises.length} 題`;
+            statusDiv.style.color = "#444";
+            statusDiv.textContent = `錯字：${foundCount} / ${totalErrors}`;
+            nextBtn.style.display = "none";
+
+            currentQ.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = 'word-box';
+                div.innerHTML = `<div class="zhuyin">${item.z}</div><div class="char">${item.char}</div>`;
+                div.onclick = () => {
+                    if (div.classList.contains('found')) return;
+                    if (item.isError) {
+                        div.querySelector('.char').textContent = item.correct;
+                        div.classList.add('found');
+                        foundCount++;
+                        statusDiv.textContent = `錯字：${foundCount} / ${totalErrors}`;
+                        if (foundCount === totalErrors) {
+                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                            statusDiv.textContent = "太棒了！全部找出來了！";
+                            statusDiv.style.color = "green";
+                            if (currentIndex < exercises.length - 1) nextBtn.style.display = "block";
+                        }
+                    } else {
+                        div.querySelector('.char').style.borderColor = 'red';
+                        setTimeout(() => div.querySelector('.char').style.borderColor = '#ccc', 500);
+                    }
+                };
+                container.appendChild(div);
+            });
+        }
+
+        function nextQuestion() {
+            if (currentIndex < exercises.length - 1) {
+                currentIndex++;
+                loadQuestion();
+            }
+        }
+        loadQuestion();
+    </script>
+</body>
+</html>
